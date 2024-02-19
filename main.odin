@@ -46,6 +46,11 @@ vec_norm :: proc(vec: rl.Vector2) -> rl.Vector2{
     return rl.Vector2{vec.x / len, vec.y / len}
 }
 
+Circle :: struct{
+    pos: rl.Vector2,
+    angle: f32,
+}
+
 main :: proc(){
     rl.InitWindow(WIDTH, HEIGHT, "particles")
     defer rl.CloseWindow()
@@ -57,24 +62,37 @@ main :: proc(){
     particle_amount :: 10
     angle_delta := 360.0 / f32(particle_amount)
 
-    circle_speed: f32 = 5.0
+    circle_speed: f32 = 1.0
+    circles: [particle_amount]Circle
+    for i in 0..<len(circles){
+        c := Circle{
+            pos = rl.Vector2{WIDTH / 2, HEIGHT / 2},
+            angle = angle_delta * f32(i),
+        }
 
-    //void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color);   
+        circles[i] = c
+    }
 
     for !rl.WindowShouldClose(){
         rl.BeginDrawing()
         defer rl.EndDrawing()
 
         //UPDATING
-        if rl.IsKeyDown(.Q){
-            circ_pos += vec_norm(rotate_vec_rel(vec, angle)) * circle_speed
+        for i in 0..<len(circles){
+            c := circles[i]
+            defer circles[i] = c
+
+            c.pos += vec_norm(rotate_vec_rel(vec, c.angle)) * circle_speed
         }
 
         //RENDERING
         rl.ClearBackground(rl.BLACK)
+
         for i in 0..<particle_amount{
             draw_vector(circ_pos, vec, f32(i) * angle_delta, rl.Color{66, 245, 147, 255})
         }
-        rl.DrawCircle(i32(circ_pos.x), i32(circ_pos.y), 25, rl.WHITE)
+        for circle in circles{
+            rl.DrawCircle(i32(circle.pos.x), i32(circle.pos.y), 25, rl.WHITE)
+        }
     }
 }
